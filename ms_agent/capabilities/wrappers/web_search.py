@@ -33,12 +33,12 @@ WEB_SEARCH_DESCRIPTOR = CapabilityDescriptor(
     name='web_search',
     version='0.1.0',
     granularity='tool',
-    summary=('Search the web using multiple engines (exa, serpapi, arxiv) '
-             'and optionally fetch full page content.'),
+    summary=('Search the web using multiple engines (exa, serpapi, arxiv, '
+             'tavily) and optionally fetch full page content.'),
     description=(
         'Performs a web search and returns structured results including '
         'title, URL, and summary for each hit.  Supports exa, serpapi, '
-        'and arxiv backends.  Set fetch_content=true to additionally '
+        'arxiv, and tavily backends.  Set fetch_content=true to additionally '
         'retrieve and return page text (truncated to 10 000 chars).'),
     input_schema={
         'type': 'object',
@@ -56,8 +56,8 @@ WEB_SEARCH_DESCRIPTOR = CapabilityDescriptor(
                 'type':
                 'string',
                 'description':
-                ("Search engine to use: 'exa', 'serpapi', or 'arxiv' "
-                 "(default: 'arxiv')"),
+                ("Search engine to use: 'exa', 'serpapi', 'arxiv', or "
+                 "'tavily' (default: 'arxiv')"),
                 'default':
                 'arxiv',
             },

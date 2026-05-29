@@ -7,6 +7,7 @@ from ms_agent.tools.search.arxiv.schema import ArxivSearchRequest
 from ms_agent.tools.search.exa import ExaSearchRequest
 from ms_agent.tools.search.search_base import SearchEngineType, SearchRequest
 from ms_agent.tools.search.serpapi.schema import SerpApiSearchRequest
+from ms_agent.tools.search.tavily.schema import TavilySearchRequest
 
 
 class SearchRequestGenerator:
@@ -256,6 +257,76 @@ class ArxivSearchRequestGenerator(SearchRequestGenerator):
         return ArxivSearchRequest(**search_request_d)
 
 
+class TavilySearchRequestGenerator(SearchRequestGenerator):
+
+    def get_args_template(self) -> str:
+        return '{"query": "xxx", "num_results": 20, "search_depth": "basic", "topic": "general"}'
+
+    def get_json_schema(self,
+                        num_queries: int,
+                        is_strict: bool = True) -> Dict[str, Any]:
+        return {
+            'name': 'search_requests',
+            'strict': is_strict,
+            'schema': {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'query': {
+                            'type': 'string',
+                            'description': (
+                                'Google-style search query optimized for Tavily AI search. '
+                                'Use natural language or keyword queries. Keep under 400 characters. '
+                                'Use quotes for exact phrases, combine terms naturally. '
+                                'Note that Chinese phrases do not require quotation marks.\n'
+                                'Examples:\n'
+                                '- "retrieval augmented generation" evaluation benchmarks\n'
+                                '- latest advances in quantum computing 2025\n'
+                                '- 大模型 工具调用 最新研究')
+                        },
+                        'num_results': {
+                            'type': 'integer',
+                            'description': 'The number of results to return (1-25). '
+                                           'Choose a value appropriate to the query complexity (e.g., 10)',
+                        },
+                        'search_depth': {
+                            'type': 'string',
+                            'enum': ['basic', 'advanced'],
+                            'description': 'Search depth. "basic" for fast results, '
+                                           '"advanced" for higher relevance (default: "basic").',
+                        },
+                        'topic': {
+                            'type': 'string',
+                            'enum': ['general', 'news', 'finance'],
+                            'description': 'Topic category (default: "general").',
+                        },
+                        'research_goal': {
+                            'type': 'string',
+                            'description': 'The goal of the research and additional research directions'
+                        }
+                    },
+                    'required': ['query', 'num_results', 'research_goal']
+                },
+                'description': f'List of Tavily-style queries, max of {num_queries}'
+            }
+        }
+
+    def get_rewrite_prompt(self) -> str:
+        return (
+            f'生成search request，具体要求为： '
+            f'\n1. 必须符合以下arguments格式：{self.get_args_template()}'
+            f'\n2. 其中，query参数的值通过分析用户原始输入中的有效问题部分生成，即{self.user_prompt}，要求为精简的搜索查询，'
+            f'保持在400字符以内；'
+            f'\n3. 参数需要符合搜索引擎的要求，num_results需要根据实际问题的复杂程度来估算，最大25，最小1；'
+            f'\n4. search_depth参数可选"basic"（快速）或"advanced"（更高相关性），默认为"basic"；'
+            f'\n5. topic参数可选"general"、"news"或"finance"，根据查询内容选择合适的主题')
+
+    def create_request(
+            self, search_request_d: Dict[str, Any]) -> TavilySearchRequest:
+        return TavilySearchRequest(**search_request_d)
+
+
 def get_search_request_generator(engine_type: SearchEngineType,
                                  user_prompt: str) -> SearchRequestGenerator:
     """
@@ -277,5 +348,7 @@ def get_search_request_generator(engine_type: SearchEngineType,
         return SerpApiSearchRequestGenerator(user_prompt)
     elif engine_type == SearchEngineType.ARXIV:
         return ArxivSearchRequestGenerator(user_prompt)
+    elif engine_type == SearchEngineType.TAVILY:
+        return TavilySearchRequestGenerator(user_prompt)
     else:
         raise ValueError(f'Unsupported search engine type: {engine_type}')

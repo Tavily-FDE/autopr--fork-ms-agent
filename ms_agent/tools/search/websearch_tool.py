@@ -206,6 +206,9 @@ def get_search_engine_class(engine_type: str) -> Type[SearchEngine]:
     elif engine_type == 'arxiv':
         from ms_agent.tools.search.arxiv import ArxivSearch
         return ArxivSearch
+    elif engine_type == 'tavily':
+        from ms_agent.tools.search.tavily import TavilySearch
+        return TavilySearch
     else:
         logger.warning(
             f"Unknown search engine '{engine_type}', falling back to arxiv")
@@ -241,6 +244,9 @@ def get_search_engine(engine_type: str,
     elif engine_type == 'arxiv':
         from ms_agent.tools.search.arxiv import ArxivSearch
         return ArxivSearch()
+    elif engine_type == 'tavily':
+        from ms_agent.tools.search.tavily import TavilySearch
+        return TavilySearch(api_key=api_key or os.getenv('TAVILY_API_KEY'))
     else:
         logger.warning(
             f"Unknown search engine '{engine_type}', falling back to arxiv")
