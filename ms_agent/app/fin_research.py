@@ -1024,6 +1024,10 @@ class FinResearchWorkflowRunner:
                     overrides['SERPAPI_API_KEY'] = key_val
                     if preferred_engine is None:
                         preferred_engine = SearchEngineType.SERPAPI.value
+                elif engine_norm == 'tavily':
+                    overrides['TAVILY_API_KEY'] = key_val
+                    if preferred_engine is None:
+                        preferred_engine = SearchEngineType.TAVILY.value
                 else:
                     logger.warning(
                         f'Unsupported search engine prefix "{engine}" provided; ignoring entry.'
